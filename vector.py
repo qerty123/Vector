@@ -14,6 +14,11 @@ class Vector:
         text += ''
         return text
 
+    def __round__(self, n=None):
+        if n:
+            for i in self.values:
+                i.round(n)
+
     def __add__(self, other):
         values = []
         if type(other) is Vector or Vector in other.__class__.__bases__:
@@ -98,6 +103,22 @@ class Vector:
         self.values = self.normalize().values
         return self
 
+    def velocity(self, dtime, *new_values):
+        if len(new_values) != len(self.values):
+            raise IOError('Wrong size vector')
+        dmove = Vector(*new_values) - Vector(*self.values)
+        vel = dmove / dtime
+        self.values = new_values
+        return Vector(*vel.values)
+
+    def velocity_ema(self, rate, dtime, *new_values):
+        if len(new_values) != len(self.values):
+            raise IOError('Wrong size vector')
+        dmove = Vector(*new_values) * (1 - rate) - Vector(*self.values) * rate
+        vel = dmove / dtime
+        self.values = new_values
+        return Vector(*vel.values)
+
 
 class Vector2d(Vector):
     def __init__(self, x=0, y=0):
@@ -145,6 +166,14 @@ class Vector2d(Vector):
         azimuth = atan2(self.x(), self.y())
         return azimuth
 
+    def velocity(self, dtime, *new_values):
+        vel = super().velocity(dtime, *new_values).values
+        return Vector2d(*vel)
+
+    def ema(self, rate, dtime, *new_values):
+        vel = super().velocity(rate, dtime, *new_values).values
+        return Vector2d(*vel)
+
 
 class Vector3d(Vector):
     def __init__(self, x=0, y=0, z=0):
@@ -190,3 +219,11 @@ class Vector3d(Vector):
 
     def z(self):
         return self.values[2]
+
+    def velocity(self, dtime, *new_values):
+        vel = super().velocity(dtime, *new_values).values
+        return Vector3d(*vel)
+
+    def ema(self, rate, dtime, *new_values):
+        vel = super().velocity(rate, dtime, *new_values).values
+        return Vector3d(*vel)
