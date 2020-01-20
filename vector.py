@@ -1,4 +1,4 @@
-from math import sqrt, atan2
+from math import sqrt, atan2, acos, cos
 
 
 class Vector:
@@ -18,6 +18,7 @@ class Vector:
         if n:
             for i in self.values:
                 i.round(n)
+        return self
 
     def __add__(self, other):
         values = []
@@ -28,8 +29,7 @@ class Vector:
             else:
                 raise IOError('Cannot add different sizes vectors')
         else:
-            for i in self.values:
-                values.append(i + other)
+            raise IOError('Can add only vectors')
         return Vector(*values)
 
     def __iadd__(self, other):
@@ -44,8 +44,7 @@ class Vector:
             else:
                 raise IOError('Cannot subtract different sizes vectors')
         else:
-            for i in self.values:
-                values.append(i - other)
+            raise IOError('Can subtract only vectors')
         return Vector(*values)
 
     def __isub__(self, other):
@@ -55,14 +54,14 @@ class Vector:
         values = []
         if type(other) is Vector or Vector in other.__class__.__bases__:
             if len(other.values) == len(self.values):
-                for i in range(len(self.values)):
-                    values.append(self.values[i] * other.values[i])
+                length = self.length() * other.length() * cos(self.angle(other))
+                return length
             else:
                 raise IOError('Cannot multiply different sizes vectors')
         else:
             for i in self.values:
                 values.append(i * other)
-        return Vector(*values)
+            return Vector(*values)
 
     def __imul__(self, other):
         return self.__mul__(other)
@@ -70,11 +69,7 @@ class Vector:
     def __truediv__(self, other):
         values = []
         if type(other) is Vector or Vector in other.__class__.__bases__:
-            if len(other.values) == len(self.values):
-                for i in range(len(self.values)):
-                    values.append(self.values[i] / other.values[i])
-            else:
-                raise IOError('Cannot divide different sizes vectors')
+            raise IOError('Can divide only vectors')
         else:
             for i in self.values:
                 values.append(i / other)
@@ -118,6 +113,29 @@ class Vector:
         vel = dmove / dtime
         self.values = new_values
         return Vector(*vel.values)
+
+    def dot(self, a, b=None):
+        if type(b) is Vector or Vector in b.__class__.__bases__:
+            length = a.length() * b.length() * cos(a.angle(b))
+        else:
+            length = self.length() * a.length() * cos(self.angle(a))
+        return length
+
+    def angle(self, a, b=None):
+        amount = 0
+        if type(b) is Vector or Vector in b.__class__.__bases__:
+            if len(a.values) != len(b.values):
+                raise IOError('Wrong size vector')
+            for i in range(len(a.values)):
+                amount += a.values[i] * b.values[i]
+            angle = amount / (a.length() * b.length())
+        else:
+            if len(a.values) != len(self.values):
+                raise IOError('Wrong size vector')
+            for i in range(len(a.values)):
+                amount += a.values[i] * self.values[i]
+            angle = amount / (a.length() * self.length())
+        return acos(angle)
 
 
 class Vector2d(Vector):
