@@ -53,11 +53,13 @@ class Vector:
     def __mul__(self, other):
         values = []
         if type(other) is Vector or Vector in other.__class__.__bases__:
-            if len(other.values) == len(self.values):
-                length = self.length() * other.length() * cos(self.angle(other))
-                return length
+            if len(other.values) == 3 and len(self.values) == 3:
+                new_x = self.values[1] * other.values[2] - self.values[2] * other.values[1]
+                new_y = self.values[2] * other.values[0] - self.values[0] * other.values[2]
+                new_z = self.values[0] * other.values[1] - self.values[1] * other.values[0]
+                return Vector(new_x, new_y, new_z)
             else:
-                raise IOError('Cannot multiply different sizes vectors')
+                raise IOError('Cannot multiply not 3d vectors')
         else:
             for i in self.values:
                 values.append(i * other)
@@ -114,28 +116,49 @@ class Vector:
         self.values = new_values
         return Vector(*vel.values)
 
-    def dot(self, a, b=None):
-        if type(b) is Vector or Vector in b.__class__.__bases__:
-            length = a.length() * b.length() * cos(a.angle(b))
-        else:
-            length = self.length() * a.length() * cos(self.angle(a))
+    def dot(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        length = self.length() * vector.length() * cos(self.angle(vector))
         return length
 
-    def angle(self, a, b=None):
+    def angle(self, vector):
         amount = 0
-        if type(b) is Vector or Vector in b.__class__.__bases__:
-            if len(a.values) != len(b.values):
-                raise IOError('Wrong size vector')
-            for i in range(len(a.values)):
-                amount += a.values[i] * b.values[i]
-            angle = amount / (a.length() * b.length())
-        else:
-            if len(a.values) != len(self.values):
-                raise IOError('Wrong size vector')
-            for i in range(len(a.values)):
-                amount += a.values[i] * self.values[i]
-            angle = amount / (a.length() * self.length())
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        for i in range(len(vector.values)):
+            amount += vector.values[i] * self.values[i]
+        angle = amount / (vector.length() * self.length())
         return acos(angle)
+
+    def project(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        project = self.dot(vector.normalize()) * vector.normalize()
+        return project
+
+    def reject(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        reject = self - self.dot(vector.normalize()) * vector.normalize()
+        return reject
+
+    def reflect(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        reflect = self - vector.normalize() * self.dot(vector.normalize()) * 2
+        return reflect
+
+    def nreflect(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        reflect = vector.normalize() * self.dot(vector.normalize()) * 2 - self
+        return reflect
+
+    def cross(self, vector):
+        if len(vector.values) != len(self.values):
+            raise IOError('Wrong size vector')
+        return self * vector
 
 
 class Vector2d(Vector):
@@ -192,6 +215,22 @@ class Vector2d(Vector):
         vel = super().velocity(rate, dtime, *new_values).values
         return Vector2d(*vel)
 
+    def project(self, vector):
+        values = super().project(vector).values
+        return Vector2d(*values)
+
+    def reject(self, vector):
+        values = super().reject(vector).values
+        return Vector2d(*values)
+
+    def reflect(self, vector):
+        values = super().reflect(vector).values
+        return Vector2d(*values)
+
+    def nreflect(self, vector):
+        values = super().nreflect(vector).values
+        return Vector2d(*values)
+
 
 class Vector3d(Vector):
     def __init__(self, x=0, y=0, z=0):
@@ -245,3 +284,23 @@ class Vector3d(Vector):
     def ema(self, rate, dtime, *new_values):
         vel = super().velocity(rate, dtime, *new_values).values
         return Vector3d(*vel)
+
+    def project(self, vector):
+        values = super().project(vector).values
+        return Vector3d(*values)
+
+    def reject(self, vector):
+        values = super().reject(vector).values
+        return Vector3d(*values)
+
+    def reflect(self, vector):
+        values = super().reflect(vector).values
+        return Vector3d(*values)
+
+    def nreflect(self, vector):
+        values = super().nreflect(vector).values
+        return Vector3d(*values)
+
+    def cross(self, vector):
+        values = super().cross(vector).values
+        return Vector3d(*values)
