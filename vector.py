@@ -1,6 +1,48 @@
+# Copyright (c) 2020 Kapitonov Stanislav <delphi.troll@mail.ru>
+
 from math import sqrt, atan2, acos, cos
 
 
+# Functions for working with two arguments out of vector class
+def dot(vector1, vector2):
+    if len(vector1.values) != len(vector2.values):
+        raise IOError('Wrong size vector')
+    length = vector1.length() * vector2.length() * cos(vector1.angle(vector2))
+    return length
+
+
+def angle(vector1, vector2):
+    amount = 0
+    if len(vector1.values) != len(vector2.values):
+        raise IOError('Wrong size vector')
+    for i in range(len(vector2.values)):
+        amount += vector2.values[i] * vector1.values[i]
+    angle = amount / (vector2.length() * vector1.length())
+    return acos(angle)
+
+
+def project(vector1, vector2):
+    if len(vector1.values) != len(vector2.values):
+        raise IOError('Wrong size vector')
+    project = vector1.dot(vector2.normalize()) * vector2.normalize()
+    return project
+
+
+def reject(vector1, vector2):
+    if len(vector1.values) != len(vector2.values):
+        raise IOError('Wrong size vector')
+    reject = vector1 - vector1.dot(vector2.normalize()) * vector2.normalize()
+    return reject
+
+
+def reflect(vector1, vector2):
+    if len(vector1.values) != len(vector2.values):
+        raise IOError('Wrong size vector')
+    reflect = vector1 - vector2.normalize() * vector1.dot(vector2.normalize()) * 2
+    return reflect
+
+
+# Class for working with dynamic size vectors
 class Vector:
     def __init__(self, *values):
         self.values = values
@@ -92,10 +134,12 @@ class Vector:
             length += i ** 2
         return length
 
+    # Just return another vector with single length
     def normalize(self):
         normalize = self / self.length()
         return normalize
 
+    # Set current vector single length
     def set_normalized(self):
         self.values = self.normalize().values
         return self
@@ -108,6 +152,7 @@ class Vector:
         self.values = new_values
         return Vector(*vel.values)
 
+    # Exponential moving average function
     def velocity_ema(self, rate, dtime, *new_values):
         if len(new_values) != len(self.values):
             raise IOError('Wrong size vector')
